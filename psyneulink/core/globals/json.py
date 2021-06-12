@@ -192,6 +192,7 @@ import json
 import math
 import numpy
 import pickle
+import pint
 import psyneulink
 import re
 import types
@@ -262,6 +263,8 @@ class PNLJSONEncoder(json.JSONEncoder):
             return list(o)
         elif isinstance(o, numpy.random.RandomState):
             return f'numpy.random.RandomState({o.seed})'
+        elif isinstance(o, (pint.Quantity, pint.Unit)):
+            return f'{o:~}'.replace('µ', 'u')  # µ only non-ascii prefix used
         else:
             try:
                 # convert numpy number type to python type
@@ -463,6 +466,20 @@ def _parse_parameter_value(value, component_identifiers=None, name=None, parent_
         identifier = parse_valid_identifier(value)
         if identifier in component_identifiers:
             value = identifier
+
+        try:
+            psyneulink._unit_registry.Unit(value)
+        except (AttributeError, TypeError, ValueError, pint.errors.DefinitionSyntaxError):
+            pass
+        else:
+            value = f"'{value}'"
+
+        try:
+            psyneulink._unit_registry.Quantity(value)
+        except (AttributeError, TypeError, ValueError, pint.errors.DefinitionSyntaxError):
+            pass
+        else:
+            value = f"'{value}'"
 
         evaluates = False
         try:
