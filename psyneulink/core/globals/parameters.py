@@ -846,6 +846,7 @@ class Parameter(ParameterBase):
         reference=False,
         dependencies=None,
         initializer=None,
+        mdf_name=None,
         _owner=None,
         _inherited=False,
         # this stores a reference to the Parameter object that is the
@@ -909,6 +910,7 @@ class Parameter(ParameterBase):
             reference=reference,
             dependencies=dependencies,
             initializer=initializer,
+            mdf_name=mdf_name,
             _inherited=_inherited,
             _inherited_source=_inherited_source,
             _user_specified=_user_specified,

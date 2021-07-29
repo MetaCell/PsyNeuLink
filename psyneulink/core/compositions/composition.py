@@ -2362,6 +2362,7 @@ from copy import deepcopy, copy
 from inspect import isgenerator, isgeneratorfunction
 
 import graph_scheduler
+import modeci_mdf.mdf as mdf
 import networkx
 import numpy as np
 import pint
@@ -2406,7 +2407,7 @@ from psyneulink.core.globals.keywords import \
     FEEDBACK, HARD_CLAMP, IDENTITY_MATRIX, INPUT, INPUT_PORTS, INPUTS, INPUT_CIM_NAME, LEARNED_PROJECTIONS, \
     LEARNING_FUNCTION, LEARNING_MECHANISM, LEARNING_MECHANISMS, LEARNING_PATHWAY, \
     MATRIX, MATRIX_KEYWORD_VALUES, MAYBE, MODEL_SPEC_ID_COMPOSITION, MODEL_SPEC_ID_NODES, MODEL_SPEC_ID_PROJECTIONS, \
-    MODEL_SPEC_ID_PSYNEULINK, \
+    MODEL_SPEC_ID_PSYNEULINK, MODEL_SPEC_ID_METADATA, \
     MODEL_SPEC_ID_RECEIVER_MECH, MODEL_SPEC_ID_SENDER_MECH, MONITOR, MONITOR_FOR_CONTROL, NAME, NESTED, NO_CLAMP, \
     OBJECTIVE_MECHANISM, ONLINE, OUTCOME, OUTPUT, OUTPUT_CIM_NAME, OUTPUT_MECHANISM, OUTPUT_PORTS, OWNER_VALUE, \
     PARAMETER, PARAMETER_CIM_NAME, PROCESSING_PATHWAY, PROJECTION, PULSE_CLAMP, \
@@ -2418,7 +2419,7 @@ from psyneulink.core.globals.preferences.basepreferenceset import BasePreference
 from psyneulink.core.globals.preferences.preferenceset import PreferenceLevel, _assign_prefs
 from psyneulink.core.globals.registry import register_category
 from psyneulink.core.globals.utilities import \
-    ContentAddressableList, call_with_pruned_args, convert_to_list, convert_to_np_array
+    ContentAddressableList, call_with_pruned_args, convert_to_list, convert_to_np_array, parse_valid_identifier
 from psyneulink.core.scheduling.condition import All, AllHaveRun, Always, Any, Condition, Never
 from psyneulink.core.scheduling.scheduler import Scheduler, SchedulingMode
 from psyneulink.core.scheduling.time import Time, TimeScale
@@ -10070,6 +10071,62 @@ class Composition(Composition_Base, metaclass=ComponentsMeta):
                 }
             }
         }
+
+    def as_mdf_model(self):
+        nodes_dict = {}
+        projections_dict = {}
+        self_identifier = parse_valid_identifier(self.name)
+        metadata = self._mdf_metadata
+
+        additional_projections = []
+        additional_nodes = (
+            [self.controller]
+            if self.controller is not None
+            else []
+        )
+
+        for n in list(self.nodes) + additional_nodes:
+            if not isinstance(n, CompositionInterfaceMechanism):
+                nodes_dict[parse_valid_identifier(n.name)] = n.as_mdf_model()
+
+            # consider making this more general in the future
+            try:
+                additional_projections.extend(n.control_projections)
+            except AttributeError:
+                pass
+
+        for p in list(self.projections) + additional_projections:
+            p_model = p.as_mdf_model()
+            # filter projections to/from CIMs of this composition
+            # and projections to things outside this composition
+            if (
+                (
+                    p_model.sender != self_identifier
+                    and p_model.receiver != self_identifier
+                )
+                and (
+                    p_model.sender in nodes_dict
+                    or p_model.receiver in nodes_dict
+                )
+            ):
+                projections_dict[parse_valid_identifier(p.name)] = p_model
+
+        metadata[MODEL_SPEC_ID_METADATA]['controller'] = self.controller.as_mdf_model() if self.controller is not None else None
+
+        graph = mdf.Graph(
+            id=self_identifier,
+            conditions=self.scheduler.as_mdf_model(),
+            **self._mdf_model_parameters,
+            **metadata
+        )
+
+        for _, node in nodes_dict.items():
+            graph.nodes.append(node)
+
+        for _, proj in projections_dict.items():
+            graph.edges.append(proj)
+
+        return graph
 
     # ******************************************************************************************************************
     #                                           PROPERTIES

@@ -497,6 +497,7 @@ import numbers
 import warnings
 
 import collections
+import modeci_mdf.mdf as mdf
 import numpy as np
 import typecheck as tc
 
@@ -514,7 +515,8 @@ from psyneulink.core.globals.keywords import \
 from psyneulink.core.globals.parameters import Parameter
 from psyneulink.core.globals.preferences.basepreferenceset import is_pref_set
 from psyneulink.core.globals.preferences.preferenceset import PreferenceLevel
-from psyneulink.core.globals.utilities import append_type_to_name, convert_to_np_array, is_numeric, iscompatible, kwCompatibilityLength
+from psyneulink.core.globals.utilities import append_type_to_name, convert_to_np_array, is_numeric, iscompatible, \
+    kwCompatibilityLength, parse_valid_identifier
 
 __all__ = [
     'InputPort', 'InputPortError', 'port_type_keywords', 'SHADOW_INPUTS',
@@ -1308,6 +1310,14 @@ class InputPort(Port_Base):
         function = function or InputPort.defaults.function
 
         return Port_Base._get_port_function_value(owner=owner, function=function, variable=variable)
+
+    def as_mdf_model(self):
+        return mdf.InputPort(
+            id=parse_valid_identifier(self.name),
+            shape=str(self.defaults.variable.shape),
+            type=str(self.defaults.variable.dtype),
+            **self._mdf_metadata
+        )
 
 
 def _instantiate_input_ports(owner, input_ports=None, reference_value=None, context=None):
