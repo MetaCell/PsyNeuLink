@@ -215,7 +215,7 @@ class IntegratorFunction(StatefulFunction):  # ---------------------------------
         """
         rate = Parameter(1.0, modulable=True, function_arg=True)
         noise = Parameter(0.0, modulable=True, function_arg=True)
-        previous_value = Parameter(np.array([0]), initializer='initializer', pnl_internal=True)
+        previous_value = Parameter(np.array([0]), initializer='initializer')
         initializer = Parameter(np.array([0]), pnl_internal=True)
 
     @tc.typecheck
@@ -4359,7 +4359,7 @@ class FitzHughNagumoIntegrator(IntegratorFunction):  # -------------------------
 
         # this should be removed because it's unused, but this will
         # require a larger refactoring on previous_value/value
-        previous_value = Parameter(None, initializer='initializer', pnl_internal=True)
+        previous_value = Parameter(None, initializer='initializer')
 
         enable_output_type_conversion = Parameter(
             False,
