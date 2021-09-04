@@ -921,11 +921,11 @@ def _generate_composition_string(graphs_dict, component_identifiers):
     control_mechanism_types = (psyneulink.ControlMechanism, )
     # these are not actively added to a Composition
     implicit_types = (
-        psyneulink.ObjectiveMechanism,
         psyneulink.ControlProjection,
         psyneulink.AutoAssociativeProjection,
         psyneulink.LearningMechanism,
         psyneulink.LearningProjection,
+        psyneulink.ComparatorMechanism,
     )
     output = []
 
