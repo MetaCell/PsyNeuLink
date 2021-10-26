@@ -2362,7 +2362,6 @@ from copy import deepcopy, copy
 from inspect import isgenerator, isgeneratorfunction
 
 import graph_scheduler
-import modeci_mdf.mdf as mdf
 import networkx
 import numpy as np
 import pint
@@ -10073,6 +10072,8 @@ class Composition(Composition_Base, metaclass=ComponentsMeta):
         }
 
     def as_mdf_model(self, simple_edge_format=True):
+        import modeci_mdf.mdf as mdf
+
         def is_included_projection(proj):
             included_types = (
                 CompositionInterfaceMechanism,

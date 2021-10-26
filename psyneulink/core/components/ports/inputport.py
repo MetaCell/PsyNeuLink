@@ -497,7 +497,6 @@ import numbers
 import warnings
 
 import collections
-import modeci_mdf.mdf as mdf
 import numpy as np
 import typecheck as tc
 
@@ -1312,6 +1311,8 @@ class InputPort(Port_Base):
         return Port_Base._get_port_function_value(owner=owner, function=function, variable=variable)
 
     def as_mdf_model(self):
+        import modeci_mdf.mdf as mdf
+
         return mdf.InputPort(
             id=parse_valid_identifier(self.name),
             shape=str(self.defaults.variable.shape),
