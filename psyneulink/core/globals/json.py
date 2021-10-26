@@ -663,11 +663,6 @@ def _generate_composition_string(graphs_dict, component_identifiers):
     # may be given multiple compositions
     for comp_name, composition_dict in graphs_dict.items():
         try:
-            comp_type = _parse_component_type(composition_dict)
-        except KeyError:
-            comp_type = default_composition_type
-
-        try:
             assert comp_name == composition_dict['name']
         except KeyError:
             pass
